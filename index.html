@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Oralidade</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: white;
+    }
+    .pantalla {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+    .activa {
+      display: block;
+    }
+    .boton-grande {
+      width: 100%;
+      height: 20vh;
+      background-color: #1861b6;
+      color: white;
+      font-size: 1.5em;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    .boton {
+      background-color: #1861b6;
+      color: white;
+      font-size: 1.2em;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .cronometro {
+      font-size: 18vw;
+      color: black;
+      margin-top: 40px;
+    }
+    .botones-crono {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .imagen {
+      max-width: 80%;
+      height: auto;
+      margin: 20px auto;
+      display: block;
+    }
+    .boton-crono {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #1861b6;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    .boton-inicio, .boton-atras {
+      position: fixed;
+      top: 20px;
+      background-color: #1861b6;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    .boton-inicio {
+      left: 20px;
+    }
+    .boton-atras {
+      left: 110px; /* Ajusta para que quede a la derecha del de inicio */
+    }
+    .resultado-grande {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="boton-inicio" onclick="mostrarPantalla('pantalla-inicio')">INICIO</button>
+  <button class="boton-atras" onclick="irAtras()">ATRÁS</button>
+
+  <!-- NIVEL 1: PANTALLA PRINCIPAL -->
+  <div id="pantalla-inicio" class="pantalla activa">
+    <button class="boton-grande" onclick="mostrarPantalla('declamacion')">DECLAMACIÓN</button>
+    <button class="boton-grande" onclick="mostrarPantalla('elevador')">O ELEVADOR</button>
+    <button class="boton-grande" onclick="mostrarPantalla('tecendohistorias')">TECENDO HISTORIAS</button>
+    <button class="boton-grande" onclick="mostrarPantalla('minutohonra')">O MINUTO DE HONRA</button>
+  </div>
+
+  <!-- NIVEL 2: DECLAMACIÓN -->
+  <div id="declamacion" class="pantalla">
+    <button id="sorteoDeclamacion" class="boton" onclick="sorteoDeclamacion()">PREME PARA COÑECER O TEXTO A DECLAMAR</button>
+    <div id="resultadoDeclamacion"></div>
+    <img id="imagenDeclamacion" class="imagen" style="display:none">
+    <button id="botonCronoDeclamacion" class="boton-crono" style="display:none" onclick="mostrarCronometro(120)">IR AO CRONÓMETRO</button>
+  </div>
+
+  <!-- NIVEL 2: O ELEVADOR -->
+  <div id="elevador" class="pantalla">
+    <button id="sorteoElevador" class="boton" onclick="sorteoElevador()">PREME PARA COÑECER O PERSOEIRO A ENSALZAR</button>
+    <div id="resultadoElevador"></div>
+    <img id="imagenElevador" class="imagen" style="display:none">
+    <button id="botonCronoElevador" class="boton-crono" style="display:none" onclick="mostrarPantalla('elevadorCronos')">IR AO CRONÓMETRO</button>
+  </div>
+
+  <!-- NIVEL 3: ELEVADOR CRONOS -->
+  <div id="elevadorCronos" class="pantalla">
+    <button class="boton" onclick="mostrarCronometro(30)">CRONOMETRAR TEMPO DE PREPARACIÓN</button>
+    <button class="boton" onclick="mostrarCronometro(90)">CRONOMETRAR PROBA</button>
+  </div>
+
+  <!-- NIVEL 3: TECENDO HISTORIAS -->
+  <div id="tecendohistorias" class="pantalla">
+    <button class="boton" onclick="mostrarPantalla('tecendoCronos')">IR AO CRONÓMETRO</button>
+  </div>
+  <div id="tecendoCronos" class="pantalla">
+    <button class="boton" onclick="mostrarCronometro(60)">CRONOMETRAR TEMPO DE PREPARACIÓN</button>
+    <button class="boton" onclick="mostrarCronometro(120)">CRONOMETRAR PROBA</button>
+  </div>
+
+  <!-- NIVEL 3: O MINUTO DE HONRA -->
+  <div id="minutohonra" class="pantalla">
+    <button class="boton" onclick="mostrarCronometro(120)">CRONOMETRAR PROBA</button>
+  </div>
+
+  <!-- NIVEL 4: CRONÓMETRO -->
+  <div id="cronometro" class="pantalla">
+    <div id="tiempo" class="cronometro">00:00</div>
+    <div class="botones-crono">
+      <button class="boton" onclick="iniciarCrono()">INICIAR</button>
+      <button class="boton" onclick="pausarCrono()">PAUSAR</button>
+      <button class="boton" onclick="reiniciarCrono()">REINICIAR</button>
+    </div>
+  </div>
+
+  <script>
+    let pantallaActual = 'pantalla-inicio';
+    let pantallaAnterior = null;
+    let tiempoTotal = 0;
+    let intervalo;
+    let tiempoRestante;
+
+    function mostrarPantalla(id) {
+      pantallaAnterior = pantallaActual;
+      document.getElementById(pantallaActual).classList.remove('activa');
+      document.getElementById(id).classList.add('activa');
+      pantallaActual = id;
+      if (id === 'pantalla-inicio') {
+        resetearResultados();
+      }
+    }
+
+    function irAtras() {
+      if (pantallaAnterior) {
+        mostrarPantalla(pantallaAnterior);
+      }
+    }
+
+    function resetearResultados() {
+      document.getElementById("resultadoDeclamacion").innerText = '';
+      document.getElementById("imagenDeclamacion").style.display = 'none';
+      document.getElementById("botonCronoDeclamacion").style.display = 'none';
+
+      document.getElementById("resultadoElevador").innerText = '';
+      document.getElementById("imagenElevador").style.display = 'none';
+      document.getElementById("botonCronoElevador").style.display = 'none';
+
+      document.getElementById("sorteoDeclamacion").style.display = 'inline-block';
+      document.getElementById("sorteoElevador").style.display = 'inline-block';
+    }
+
+    function sorteoDeclamacion() {
+      const textos = [
+        ["Moraima (Onde o mundo se chama Celanova, Celso Emilio Ferreiro)", "imagen1"],
+        ["O lápis do carpinteiro (Manuel Rivas)", "imagen2"],
+        ["Os avisos da morte, Contos populares da provincia de Lugo  (Centro de Estudios Fingoi)", "imagen3"],
+        ["Das últimas mareas (Ana Romaní)", "imagen4"]
+      ];
+      const elegido = textos[Math.floor(Math.random() * textos.length)];
+      document.getElementById("sorteoDeclamacion").style.display = "none";
+      const resultadoElement = document.getElementById("resultadoDeclamacion");
+      resultadoElement.innerText = elegido[0];
+      resultadoElement.classList.add("resultado-grande");
+      const img = document.getElementById("imagenDeclamacion");
+      img.src = elegido[1] + ".jpg";
+      img.style.display = "block";
+      document.getElementById("botonCronoDeclamacion").style.display = "inline-block";
+    }
+
+    function sorteoElevador() {
+      const persoas = [
+        ["Araceli Herrero Figueroa", "imagen5"],
+        ["Antonio Fernández López", "imagen6"],
+        ["Xesús Alonso Montero", "imagen7"],
+        ["Carmen Blanco", "imagen8"],
+        ["Isaac Díaz Pardo", "imagen9"],
+        ["Maria do Carme Kruckenberg", "imagen10"]
+      ];
+      const elegido = persoas[Math.floor(Math.random() * persoas.length)];
+      document.getElementById("sorteoElevador").style.display = "none";
+      const resultadoElement = document.getElementById("resultadoElevador");
+      resultadoElement.innerText = elegido[0];
+      resultadoElement.classList.add("resultado-grande");
+      const img = document.getElementById("imagenElevador");
+      img.src = elegido[1] + ".jpg";
+      img.style.display = "block";
+      document.getElementById("botonCronoElevador").style.display = "inline-block";
+    }
+
+    function mostrarCronometro(segundos) {
+      mostrarPantalla('cronometro');
+      tiempoTotal = segundos;
+      tiempoRestante = segundos;
+      actualizarTiempo();
+    }
+
+    function actualizarTiempo() {
+      const min = Math.floor(Math.abs(tiempoRestante) / 60).toString().padStart(2, '0');
+      const seg = Math.abs(tiempoRestante % 60).toString().padStart(2, '0');
+      document.getElementById("tiempo").innerText = `${min}:${seg}`;
+    }
+
+    function iniciarCrono() {
+      clearInterval(intervalo);
+      intervalo = setInterval(() => {
+        tiempoRestante--;
+        actualizarTiempo();
+      }, 1000);
+    }
+
+    function pausarCrono() {
+      clearInterval(intervalo);
+    }
+
+    function reiniciarCrono() {
+      tiempoRestante = tiempoTotal;
+      actualizarTiempo();
+    }
+  </script>
+
+</body>
+</html>
